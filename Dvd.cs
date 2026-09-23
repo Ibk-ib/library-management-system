@@ -1,26 +1,28 @@
-﻿public class Book : LibraryItem, IReservable
+﻿public class Dvd : LibraryItem, IReservable
 {
-    public string Author { get; }
-    public string Isbn { get; }
+    public int RuntimeMinutes { get; }
+    public string AgeRating { get; }
 
-    public Book(
+    public Dvd(
         string title,
-        string author,
-        string isbn,
+        int runtimeMinutes,
+        string ageRating,
         int publicationYear
     ) : base(title, publicationYear)
     {
-        Author = author;
-        Isbn = isbn;
+        RuntimeMinutes = runtimeMinutes;
+        AgeRating = ageRating;
     }
 
-    public override int LoanPeriodDays => 21;
+    public override int LoanPeriodDays => 7;
 
-    public override string ItemType => "Book";
+    public override string ItemType => "DVD";
+
+    public override decimal DailyFine => 1.00m;
 
     public override string Describe()
     {
-        return $"{base.Describe()} by {Author} — ISBN {Isbn}";
+        return $"{base.Describe()} — {RuntimeMinutes} min, rated {AgeRating}";
     }
 
     public string? ReservedFor { get; private set; }
