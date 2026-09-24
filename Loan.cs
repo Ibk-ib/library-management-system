@@ -21,7 +21,7 @@
     ? 0
     : Math.Max(0, ReturnedOn.Value.DayNumber - DueOn.DayNumber);
 
-    public decimal Fine => Item.CalculateFine(DaysLate);
+    public decimal Fine => Item.CalculateFine(DaysLate) * Borrower.FineMultiplier;
 
     public void Complete(DateOnly returnedOn)
     {

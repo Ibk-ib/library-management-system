@@ -3,6 +3,7 @@
     private readonly List<LibraryItem> _items = new();
     private readonly List<Member> _members = new();
     private readonly List<Loan> _loans = new();
+    private readonly Dictionary<int, ReservationQueue> _reservationQueues = new();
 
     public string Name { get; }
 
@@ -18,6 +19,57 @@
     public IReadOnlyList<Member> Members => _members;
     public IReadOnlyList<Loan> Loans => _loans;
 
+
+
+
+
+
+    private ReservationQueue GetReservationQueue(int itemId)
+    {
+        if (!_reservationQueues.TryGetValue(itemId, out var queue))
+        {
+            queue = new ReservationQueue();
+            _reservationQueues[itemId] = queue;
+        }
+
+        return queue;
+    }
+
+    private Member? GetFirstReservation(int itemId)
+    {
+        if (!_reservationQueues.TryGetValue(itemId, out var queue))
+        {
+            return null;
+        }
+
+        return queue.Peek();
+    }
+
+    private Member? GetNextReservation(int itemId)
+    {
+        if (!_reservationQueues.TryGetValue(itemId, out var queue))
+        {
+            return null;
+        }
+
+        return queue.Dequeue();
+    }
+
+    public void Reserve(int itemId, Member member)
+    {
+        LibraryItem item = FindItem(itemId);
+
+        if (item is not IReservable)
+        {
+            throw new InvalidOperationException(
+                $"\"{item.Title}\" cannot be reserved."
+            );
+        }
+
+        ReservationQueue queue = GetReservationQueue(itemId);
+
+        queue.Enqueue(member);
+    }
 
     public void AddItem(LibraryItem item)
     {
@@ -46,33 +98,70 @@
         Member member = FindMember(membershipId);
 
         if (!member.CanBorrow)
+        {
             throw new InvalidOperationException(
-                $"{member.Name} already has the maximum of {Member.MaxActiveLoans} items on loan.");
+                $"{member.Name} already has the maximum of {member.MaxActiveLoans} items on loan."
+            );
+        }
 
-        if (item is IReservable { IsReserved: true } reserved &&
-            reserved.ReservedFor != member.Name)
-            throw new InvalidOperationException(
-                $"\"{item.Title}\" is reserved for {reserved.ReservedFor}.");
+        if (item is IReservable)
+        {
+            Member? firstMember = GetFirstReservation(itemId);
 
-        item.MarkAsBorrowed();
+            if (firstMember is not null &&
+                firstMember.MembershipId != membershipId)
+            {
+                throw new InvalidOperationException(
+                    $"\"{item.Title}\" is reserved for {firstMember.Name}."
+                );
+            }
+        }
 
-        if (item is IReservable r)
-            r.CancelReservation();
+        if (item is not IDigital)
+        {
+            item.MarkAsBorrowed();
+        }
+
+        if (item is IReservable)
+        {
+            Member? firstMember = GetFirstReservation(itemId);
+
+            if (firstMember is not null &&
+                firstMember.MembershipId == membershipId)
+            {
+                GetNextReservation(itemId);
+            }
+        }
 
         var loan = new Loan(item, member, today);
+
         _loans.Add(loan);
         member.Attach(loan);
 
         return loan;
     }
 
-    public decimal Return(int itemId, DateOnly today)
+    public decimal Return(
+     int itemId,
+     string membershipId,
+     DateOnly today)
     {
-        Loan loan = _loans.FirstOrDefault(l => l.Item.Id == itemId && !l.IsReturned)
-            ?? throw new InvalidOperationException($"There is no open loan for item {itemId}.");
+        Loan loan = _loans.FirstOrDefault(
+            l =>
+                l.Item.Id == itemId &&
+                l.Borrower.MembershipId == membershipId &&
+                !l.IsReturned
+        ) ?? throw new InvalidOperationException(
+            $"There is no open loan for item {itemId} for member {membershipId}."
+        );
 
         loan.Complete(today);
-        loan.Item.MarkAsReturned();
+
+        if (loan.Item is not IDigital)
+        {
+            loan.Item.MarkAsReturned();
+        }
+
         return loan.Fine;
     }
 
@@ -92,4 +181,48 @@
     private Member FindMember(string membershipId) =>
     _members.FirstOrDefault(m => m.MembershipId == membershipId)
     ?? throw new KeyNotFoundException($"No member with id {membershipId}.");
+
+
+    public void PrintDailySummary(DateOnly today)
+    {
+        Console.WriteLine($"=== Daily Summary for {today} ===");
+
+        Console.WriteLine("\n-- Items Out --");
+
+        foreach (Loan loan in _loans.Where(l => !l.IsReturned))
+        {
+            Console.WriteLine(
+                $"{loan.Item.Title} — {loan.Borrower.Name}"
+            );
+        }
+
+        Console.WriteLine("\n-- Overdue --");
+
+        foreach (Loan loan in OverdueLoans(today))
+        {
+            Console.WriteLine(
+                $"{loan.Item.Title} — " +
+                $"{loan.Borrower.Name} — " +
+                $"{loan.DaysLate} days late — " +
+                $"{loan.Fine:C}"
+            );
+        }
+
+        Console.WriteLine("\n-- Members at Limit --");
+
+        foreach (Member member in _members.Where(m => !m.CanBorrow))
+        {
+            Console.WriteLine(
+                $"{member.Name} — {member.ActiveLoanCount} active loans"
+            );
+        }
+
+        Console.WriteLine("\n-- Outstanding Fines --");
+
+        decimal totalFines = _members.Sum(m => m.TotalFinesOwed);
+
+        Console.WriteLine($"Total outstanding fines: {totalFines:C}");
+    }
 }
+
+

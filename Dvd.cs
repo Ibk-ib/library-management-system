@@ -8,7 +8,7 @@
         int runtimeMinutes,
         string ageRating,
         int publicationYear
-    ) : base(title, publicationYear)
+    ) : base(title, publicationYear, new StandardFinePolicy(1.00m))
     {
         RuntimeMinutes = runtimeMinutes;
         AgeRating = ageRating;
@@ -17,8 +17,6 @@
     public override int LoanPeriodDays => 7;
 
     public override string ItemType => "DVD";
-
-    public override decimal DailyFine => 1.00m;
 
     public override string Describe()
     {

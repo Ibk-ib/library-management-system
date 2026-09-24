@@ -8,7 +8,7 @@
         string author,
         string isbn,
         int publicationYear
-    ) : base(title, publicationYear)
+    ) : base(title, publicationYear, new StandardFinePolicy(0.50m))
     {
         Author = author;
         Isbn = isbn;
@@ -21,26 +21,5 @@
     public override string Describe()
     {
         return $"{base.Describe()} by {Author} — ISBN {Isbn}";
-    }
-
-    public string? ReservedFor { get; private set; }
-
-    public bool IsReserved => ReservedFor is not null;
-
-    public void Reserve(Member member)
-    {
-        if (IsReserved)
-        {
-            throw new InvalidOperationException(
-                $"\"{Title}\" is already reserved for {ReservedFor}."
-            );
-        }
-
-        ReservedFor = member.Name;
-    }
-
-    public void CancelReservation()
-    {
-        ReservedFor = null;
     }
 }

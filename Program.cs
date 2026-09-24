@@ -1,70 +1,44 @@
-﻿Book book1 = new Book("The Great Gatsby", "F. Scott Fitzgerald", "978-0-7432-7356-5", 1925);
-//book1.IsOnLoan = false;
+﻿var today = new DateOnly(2026, 3, 2);
 
-Book book2 = new Book("To Kill a Mockingbird", "Harper Lee", "978-0-06-112008-4", 1960);
-//book2.IsOnLoan = false;
-
-Book book3 = new Book("1984", "George Orwell", "978-0-452-28423-1", 1949);
-//book3.IsOnLoan = false;
-
-
-List<Book> books = new List<Book>();
-    books.Add(book1);
-    books.Add(book2);
-    books.Add(book3);
-
-foreach (Book book in books) {
-
-    Console.WriteLine("Borrowing {0}...", book.Title);
-
-    book.MarkAsBorrowed();
-
-    Console.WriteLine("done.");
-
-    Console.WriteLine("Borrowing {0} again...", book.Title);
-
-    try
-    {
-        book.MarkAsBorrowed();
-    }
-    catch (InvalidOperationException ex)
-    {
-        Console.WriteLine("blocked — {0}", ex.Message);
-    }
-}
-
-Dvd dvd = new Dvd("Inception", 2010, "Christopher Nolan", 148);
-Magazine magazine = new Magazine("National Geographic", 202, 2021);
-
-
-Console.WriteLine(book1.Describe());
-Console.WriteLine(book2.Describe());
-Console.WriteLine(book3.Describe());
-Console.WriteLine(dvd.Describe());
-Console.WriteLine(magazine.Describe());
-
-//List<LibraryItem> items = new List<LibraryItem>();
-
-//items.Add(book1);
-//items.Add(book2);
-//items.Add(book3);
-//items.Add(dvd);
-//items.Add(magazine);
-
-//foreach (LibraryItem item in items)
-//{
-//    Console.WriteLine($"{item.Describe()} | loan for {item.LoanPeriodDays} days and Fine is: {item.DailyFine:C}");
-//}
-
-//Console.WriteLine(
-//    $"\"{book2.Title}\" is now reserved for {book2.ReservedFor}"
-//);
-
-var today = new DateOnly(2026, 5, 7);
 var library = new Library("Riverside Community Library");
-var qanitat = new Member("M001", "Emiola Qanitat");
-var ibraheem = new Member("M002", "Abdullah Ibraheem");
 
+// =====================================================
+// ITEMS
+// =====================================================
+
+var book1 = new Book(
+    "The Hobbit",
+    "J.R.R. Tolkien",
+    "978-0261102217",
+    1937
+);
+
+var book2 = new Book(
+    "Clean Code",
+    "Robert C. Martin",
+    "978-0132350884",
+    2008
+);
+
+var book3 = new Book(
+    "The Great Gatsby",
+    "F. Scott Fitzgerald",
+    "978-0743273565",
+    1925
+);
+
+var dvd = new Dvd(
+    "Inception",
+    148,
+    "PG-13",
+    2010
+);
+
+var magazine = new Magazine(
+    "New Scientist",
+    3521,
+    2026
+);
 
 library.AddItem(book1);
 library.AddItem(book2);
@@ -72,63 +46,148 @@ library.AddItem(book3);
 library.AddItem(dvd);
 library.AddItem(magazine);
 
-library.RegisterMember(qanitat);
-library.RegisterMember(ibraheem);
 
-Console.WriteLine();
+// =====================================================
+// MEMBERS
+// =====================================================
+
+var qanitat = new PremiumMember(
+    "M-001",
+    "Qanitat"
+);
+
+var ibk = new StandardMember(
+    "M-002",
+    "Ibk"
+);
+
+var emima = new StaffMember(
+    "M-003",
+    "Emima"
+);
+
+library.RegisterMember(qanitat);
+library.RegisterMember(ibk);
+library.RegisterMember(emima);
+
+
+// =====================================================
+// CATALOGUE
+// =====================================================
+
 Console.WriteLine($"=== {library.Name} ===");
-Console.WriteLine();
-Console.WriteLine("-- Catalogue --");
+
+Console.WriteLine("\n-- Catalogue --");
 
 foreach (LibraryItem item in library.Items)
 {
     Console.WriteLine(
-        $"{item.Describe()} | loan for {item.LoanPeriodDays} days, and Fine is {item.DailyFine:C} per day late"
+        $"{item.Describe()} | " +
+        $"loan {item.LoanPeriodDays} days"
     );
 }
 
-var loan1 = library.Borrow(book1.Id, qanitat.MembershipId, today);
+
+// =====================================================
+// BORROWING
+// =====================================================
+
+Console.WriteLine("\n-- Borrowing --");
+
+var loan1 = library.Borrow(
+    book1.Id,
+    qanitat.MembershipId,
+    today
+);
 
 Console.WriteLine(
     $"{qanitat.Name} borrowed \"{loan1.Item.Title}\" — due {loan1.DueOn}"
 );
 
-var loan2 = library.Borrow( dvd.Id, qanitat.MembershipId, today);
-Console.WriteLine(
-    $"{qanitat.Name} borrowed \"{loan2.Item.Title}\" — due {loan2.DueOn}"
+
+var loan2 = library.Borrow(
+    dvd.Id,
+    ibk.MembershipId,
+    today
 );
+
+Console.WriteLine(
+    $"{ibk.Name} borrowed \"{loan2.Item.Title}\" — due {loan2.DueOn}"
+);
+
+
+var loan3 = library.Borrow(
+    book3.Id,
+    emima.MembershipId,
+    today
+);
+
+Console.WriteLine(
+    $"{emima.Name} borrowed \"{loan3.Item.Title}\" — due {loan3.DueOn}"
+);
+
+
+// =====================================================
+// RESERVATIONS
+// =====================================================
+
+Console.WriteLine("\n-- Reservations --");
+
+library.Reserve(
+    book2.Id,
+    qanitat
+);
+
+Console.WriteLine(
+    $"{qanitat.Name} reserved \"{book2.Title}\""
+);
+
+
+library.Reserve(
+    book2.Id,
+    ibk
+);
+
+Console.WriteLine(
+    $"{ibk.Name} joined the reservation queue for \"{book2.Title}\""
+);
+
+
+// =====================================================
+// RESERVATION RULE
+// =====================================================
+
+Console.WriteLine("\n-- Reservation Rule --");
 
 try
 {
-    library.Borrow(book1.Id, ibraheem.MembershipId, today);
-    Console.WriteLine("Qanitat was allowed to borrow the book.");
+    library.Borrow(
+        book2.Id,
+        emima.MembershipId,
+        today
+    );
+
+    Console.WriteLine(
+        $"{emima.Name} was allowed to borrow \"{book2.Title}\"."
+    );
 }
 catch (InvalidOperationException ex)
 {
-    Console.WriteLine($"Ibraheem's borrowing was blocked — {ex.Message}");
+    Console.WriteLine(
+        $"Emima's borrowing was blocked — {ex.Message}"
+    );
 }
 
-book2.Reserve(ibraheem);
-Console.WriteLine(
-    $"\"{book2.Title}\" is now reserved for {book2.ReservedFor}"
-);
 
-try
-{
-    library.Borrow(book2.Id, qanitat.MembershipId, today);
-    Console.WriteLine("Ibraheem was allowed to reserve the book.");
-}
-catch (InvalidOperationException ex)
-{
-    Console.WriteLine($"Qanitat's borrowing was blocked — {ex.Message}");
-}
+// =====================================================
+// RETURNING
+// =====================================================
 
-Console.WriteLine(
-    $"Can a magazine be reserved? {magazine is IReservable}"
-);
+Console.WriteLine("\n-- Returning --");
 
 var fineBook = library.Return(
     book1.Id,
+    qanitat.MembershipId,
     today.AddDays(25)
 );
 
@@ -136,8 +195,10 @@ Console.WriteLine(
     $"\"{book1.Title}\" returned 4 days late -> fine {fineBook:C}"
 );
 
+
 var fineDvd = library.Return(
     dvd.Id,
+    ibk.MembershipId,
     today.AddDays(11)
 );
 
@@ -145,15 +206,61 @@ Console.WriteLine(
     $"\"{dvd.Title}\" returned 4 days late -> fine {fineDvd:C}"
 );
 
-Console.WriteLine(
-    $"{qanitat.Name}: {qanitat.Loans.Count} loans on record, " +
-    $"{qanitat.ActiveLoanCount} active, {qanitat.TotalFinesOwed:C} owed."
+
+var fineBook3 = library.Return(
+    book3.Id,
+    emima.MembershipId,
+    today.AddDays(25)
 );
 
-Console.WriteLine();
-Console.WriteLine("-- Search --");
+Console.WriteLine(
+    $"\"{book3.Title}\" returned 4 days late -> fine {fineBook3:C}"
+);
 
-foreach (var hint in library.Search("clean"))
+
+// =====================================================
+// MEMBERS
+// =====================================================
+
+Console.WriteLine("\n-- Members --");
+
+Console.WriteLine(
+    $"{qanitat.Name}: " +
+    $"{qanitat.ActiveLoanCount} active loans, " +
+    $"{qanitat.TotalFinesOwed:C} fines owed"
+);
+
+Console.WriteLine(
+    $"{ibk.Name}: " +
+    $"{ibk.ActiveLoanCount} active loans, " +
+    $"{ibk.TotalFinesOwed:C} fines owed"
+);
+
+Console.WriteLine(
+    $"{emima.Name}: " +
+    $"{emima.ActiveLoanCount} active loans, " +
+    $"{emima.TotalFinesOwed:C} fines owed"
+);
+
+
+// =====================================================
+// SEARCH
+// =====================================================
+
+Console.WriteLine("\n-- Search --");
+
+foreach (LibraryItem item in library.Search("clean"))
 {
-    Console.WriteLine($" found: {hint.Describe()}");
+    Console.WriteLine(
+        $"Found: {item.Describe()}"
+    );
 }
+
+
+// =====================================================
+// DAILY SUMMARY
+// =====================================================
+
+Console.WriteLine();
+
+library.PrintDailySummary(today.AddDays(25));

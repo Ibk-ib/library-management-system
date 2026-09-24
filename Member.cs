@@ -1,6 +1,6 @@
-﻿public class Member
+﻿public abstract class Member
 {
-    public const int MaxActiveLoans = 3;
+    public abstract int MaxActiveLoans { get; }
 
     private readonly List<Loan> _loans = new();
 
@@ -34,6 +34,8 @@
     public int ActiveLoanCount => _loans.Count(l => !l.IsReturned);
 
     public bool CanBorrow => ActiveLoanCount < MaxActiveLoans;
+
+    public virtual decimal FineMultiplier => 1.0m;
 
     public decimal TotalFinesOwed => _loans.Sum(l => l.Fine);
 

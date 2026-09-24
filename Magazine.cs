@@ -6,7 +6,7 @@
         string title,
         int issueNumber,
         int publicationYear
-    ) : base(title, publicationYear)
+    ) : base(title, publicationYear, new StandardFinePolicy(0.25m))
     {
         IssueNumber = issueNumber;
     }
@@ -14,8 +14,6 @@
     public override int LoanPeriodDays => 3;
 
     public override string ItemType => "Magazine";
-
-    public override decimal DailyFine => 0.25m;
 
     public override string Describe()
     {

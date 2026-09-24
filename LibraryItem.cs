@@ -1,18 +1,29 @@
 ﻿public abstract class LibraryItem
 {
     private static int _nextId = 1;
+    private readonly IFinePolicy _finePolicy;
 
     public int Id { get; }
     public string Title { get; }
     public int PublicationYear { get; }
     public bool IsOnLoan { get; private set; }
 
-    protected LibraryItem(string title, int publicationYear)
+    protected LibraryItem(string title, int publicationYear, IFinePolicy finePolicy)
     {
+
+        if (string.IsNullOrWhiteSpace(title))
+            throw new ArgumentException("An item must have a title.", nameof(title));
+
+        if (publicationYear < 1450 || publicationYear > DateTime.Now.Year + 1)
+            throw new ArgumentOutOfRangeException(
+                nameof(publicationYear),
+                "Publication year is outside the plausible range."
+            );
         Id = _nextId++;
         Title = title;
         PublicationYear = publicationYear;
         IsOnLoan = false;
+        _finePolicy = finePolicy;
     }
 
     public abstract int LoanPeriodDays { get; }
@@ -23,12 +34,7 @@
 
     public decimal CalculateFine(int daysLate)
     {
-        if (daysLate <= 0)
-        {
-            return 0m;
-        }
-
-        return daysLate * DailyFine;
+        return _finePolicy.Calculate(daysLate);
     }
 
     public virtual string Describe()
@@ -36,7 +42,7 @@
         return $"[{Id}] {ItemType}: \"{Title}\" ({PublicationYear})";
     }
 
-    public void MarkAsBorrowed()
+    public virtual void MarkAsBorrowed()
     {
         if (IsOnLoan)
         {
@@ -46,7 +52,7 @@
         IsOnLoan = true;
     }
 
-    public void MarkAsReturned()
+    public virtual void MarkAsReturned()
     {
         if (!IsOnLoan)
         {
