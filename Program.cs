@@ -1,10 +1,7 @@
-﻿var today = new DateOnly(2026, 3, 2);
+﻿
+var today = new DateOnly(2026, 3, 2);
 
 var library = new Library("Riverside Community Library");
-
-// =====================================================
-// ITEMS
-// =====================================================
 
 var book1 = new Book(
     "The Hobbit",
@@ -46,34 +43,13 @@ library.AddItem(book3);
 library.AddItem(dvd);
 library.AddItem(magazine);
 
-
-// =====================================================
-// MEMBERS
-// =====================================================
-
-var qanitat = new PremiumMember(
-    "M-001",
-    "Qanitat"
-);
-
-var ibk = new StandardMember(
-    "M-002",
-    "Ibk"
-);
-
-var emima = new StaffMember(
-    "M-003",
-    "Emima"
-);
+var qanitat = new PremiumMember("M-001", "Qanitat");
+var ibk = new StandardMember("M-002", "Ibk");
+var emima = new StaffMember("M-003", "Emima");
 
 library.RegisterMember(qanitat);
 library.RegisterMember(ibk);
 library.RegisterMember(emima);
-
-
-// =====================================================
-// CATALOGUE
-// =====================================================
 
 Console.WriteLine($"=== {library.Name} ===");
 
@@ -82,15 +58,9 @@ Console.WriteLine("\n-- Catalogue --");
 foreach (LibraryItem item in library.Items)
 {
     Console.WriteLine(
-        $"{item.Describe()} | " +
-        $"loan {item.LoanPeriodDays} days"
+        $"{item.Describe()} | loan {item.LoanPeriodDays} days"
     );
 }
-
-
-// =====================================================
-// BORROWING
-// =====================================================
 
 Console.WriteLine("\n-- Borrowing --");
 
@@ -104,7 +74,6 @@ Console.WriteLine(
     $"{qanitat.Name} borrowed \"{loan1.Item.Title}\" — due {loan1.DueOn}"
 );
 
-
 var loan2 = library.Borrow(
     dvd.Id,
     ibk.MembershipId,
@@ -114,7 +83,6 @@ var loan2 = library.Borrow(
 Console.WriteLine(
     $"{ibk.Name} borrowed \"{loan2.Item.Title}\" — due {loan2.DueOn}"
 );
-
 
 var loan3 = library.Borrow(
     book3.Id,
@@ -126,36 +94,19 @@ Console.WriteLine(
     $"{emima.Name} borrowed \"{loan3.Item.Title}\" — due {loan3.DueOn}"
 );
 
-
-// =====================================================
-// RESERVATIONS
-// =====================================================
-
 Console.WriteLine("\n-- Reservations --");
 
-library.Reserve(
-    book2.Id,
-    qanitat
-);
+library.Reserve(book2.Id, qanitat);
 
 Console.WriteLine(
     $"{qanitat.Name} reserved \"{book2.Title}\""
 );
 
-
-library.Reserve(
-    book2.Id,
-    ibk
-);
+library.Reserve(book2.Id, ibk);
 
 Console.WriteLine(
     $"{ibk.Name} joined the reservation queue for \"{book2.Title}\""
 );
-
-
-// =====================================================
-// RESERVATION RULE
-// =====================================================
 
 Console.WriteLine("\n-- Reservation Rule --");
 
@@ -178,11 +129,6 @@ catch (InvalidOperationException ex)
     );
 }
 
-
-// =====================================================
-// RETURNING
-// =====================================================
-
 Console.WriteLine("\n-- Returning --");
 
 var fineBook = library.Return(
@@ -195,7 +141,6 @@ Console.WriteLine(
     $"\"{book1.Title}\" returned 4 days late -> fine {fineBook:C}"
 );
 
-
 var fineDvd = library.Return(
     dvd.Id,
     ibk.MembershipId,
@@ -205,7 +150,6 @@ var fineDvd = library.Return(
 Console.WriteLine(
     $"\"{dvd.Title}\" returned 4 days late -> fine {fineDvd:C}"
 );
-
 
 var fineBook3 = library.Return(
     book3.Id,
@@ -217,49 +161,29 @@ Console.WriteLine(
     $"\"{book3.Title}\" returned 4 days late -> fine {fineBook3:C}"
 );
 
-
-// =====================================================
-// MEMBERS
-// =====================================================
-
 Console.WriteLine("\n-- Members --");
 
 Console.WriteLine(
-    $"{qanitat.Name}: " +
-    $"{qanitat.ActiveLoanCount} active loans, " +
+    $"{qanitat.Name}: {qanitat.ActiveLoanCount} active loans, " +
     $"{qanitat.TotalFinesOwed:C} fines owed"
 );
 
 Console.WriteLine(
-    $"{ibk.Name}: " +
-    $"{ibk.ActiveLoanCount} active loans, " +
+    $"{ibk.Name}: {ibk.ActiveLoanCount} active loans, " +
     $"{ibk.TotalFinesOwed:C} fines owed"
 );
 
 Console.WriteLine(
-    $"{emima.Name}: " +
-    $"{emima.ActiveLoanCount} active loans, " +
+    $"{emima.Name}: {emima.ActiveLoanCount} active loans, " +
     $"{emima.TotalFinesOwed:C} fines owed"
 );
-
-
-// =====================================================
-// SEARCH
-// =====================================================
 
 Console.WriteLine("\n-- Search --");
 
 foreach (LibraryItem item in library.Search("clean"))
 {
-    Console.WriteLine(
-        $"Found: {item.Describe()}"
-    );
+    Console.WriteLine($"Found: {item.Describe()}");
 }
-
-
-// =====================================================
-// DAILY SUMMARY
-// =====================================================
 
 Console.WriteLine();
 
